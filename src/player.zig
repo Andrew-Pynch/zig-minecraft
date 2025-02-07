@@ -9,7 +9,7 @@ pub const Player = struct {
     camera: rl.Camera3D,
 
     mouseSensitivity: f32 = 0.1,
-    moveSpeed: f32 = 0.2,
+    moveSpeed: f32 = 5.0,
 
     pub fn init(position: rl.Vector3) Player {
         return Player{
@@ -24,11 +24,11 @@ pub const Player = struct {
         };
     }
 
-    pub fn update(self: *Player) void {
-        self.updateCamera();
+    pub fn update(self: *Player, dt: f32) void {
+        self.updateCamera(dt);
     }
 
-    pub fn updateCamera(self: *Player) void {
+    pub fn updateCamera(self: *Player, dt: f32) void {
         const mouseOffsetX = @as(f32, @floatCast(rl.getMouseDelta().x)) * self.mouseSensitivity;
         const mouseOffsetY = @as(f32, @floatCast(rl.getMouseDelta().y)) * self.mouseSensitivity;
 
@@ -52,25 +52,25 @@ pub const Player = struct {
 
         // Handle all movement
         if (rl.isKeyDown(.w)) {
-            self.camera.position.x += direction.x * self.moveSpeed;
-            self.camera.position.y += direction.y * self.moveSpeed;
-            self.camera.position.z += direction.z * self.moveSpeed;
+            self.camera.position.x += direction.x * self.moveSpeed * dt;
+            self.camera.position.y += direction.y * self.moveSpeed * dt;
+            self.camera.position.z += direction.z * self.moveSpeed * dt;
         }
         if (rl.isKeyDown(.s)) {
-            self.camera.position.x -= direction.x * self.moveSpeed;
-            self.camera.position.y -= direction.y * self.moveSpeed;
-            self.camera.position.z -= direction.z * self.moveSpeed;
+            self.camera.position.x -= direction.x * self.moveSpeed * dt;
+            self.camera.position.y -= direction.y * self.moveSpeed * dt;
+            self.camera.position.z -= direction.z * self.moveSpeed * dt;
         }
         if (rl.isKeyDown(.d)) {
-            self.camera.position.x -= right.x * self.moveSpeed;
-            self.camera.position.z -= right.z * self.moveSpeed;
+            self.camera.position.x -= right.x * self.moveSpeed * dt;
+            self.camera.position.z -= right.z * self.moveSpeed * dt;
         }
         if (rl.isKeyDown(.a)) {
-            self.camera.position.x += right.x * self.moveSpeed;
-            self.camera.position.z += right.z * self.moveSpeed;
+            self.camera.position.x += right.x * self.moveSpeed * dt;
+            self.camera.position.z += right.z * self.moveSpeed * dt;
         }
-        if (rl.isKeyDown(.e)) self.camera.position.y += self.moveSpeed;
-        if (rl.isKeyDown(.q)) self.camera.position.y -= self.moveSpeed;
+        if (rl.isKeyDown(.e)) self.camera.position.y += self.moveSpeed * dt;
+        if (rl.isKeyDown(.q)) self.camera.position.y -= self.moveSpeed * dt;
 
         // Update camera target after all position changes
         self.camera.target = rl.Vector3{

@@ -26,7 +26,8 @@ pub fn main() anyerror!void {
     try world.generateFlat(1, 1);
 
     while (!rl.windowShouldClose()) {
-        player.update();
+        const dt = rl.getFrameTime();
+        player.update(dt);
 
         rl.beginDrawing();
         defer rl.endDrawing();
