@@ -16,8 +16,8 @@ pub const Player = struct {
             .position = position,
             .camera = rl.Camera3D{
                 .position = position,
-                .target = .{ .x = 0.0, .y = 0.0, .z = 0.0 },
-                .up = .{ .x = 0.0, .y = 1.0, .z = 0.0 },
+                .target = .{ .x = 50.0, .y = 0.0, .z = 50.0 },
+                .up = .{ .x = 0.0, .y = 10.0, .z = 0.0 },
                 .fovy = 45.0,
                 .projection = .perspective,
             },

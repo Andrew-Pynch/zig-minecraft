@@ -4,26 +4,29 @@ const block = @import("block.zig");
 const Player = @import("player.zig").Player;
 const World = @import("world.zig").World;
 
-pub fn main() anyerror!void {
-    const screenWidth = 800;
-    const screenHeight = 450;
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 450;
+const FPS = 244;
+const FPS_COORDINATES = 10;
+const WORLD_SIZE = 16;
 
+pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    rl.initWindow(screenWidth, screenHeight, "zig-minecraft");
+    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Zig Minecraft");
     defer rl.closeWindow();
-    rl.setTargetFPS(244);
+    rl.setTargetFPS(FPS);
 
     // CURSOR STAYS IN WINDOW
     rl.disableCursor();
 
-    var player = Player.init(.{ .x = 0, .y = 0, .z = 0 });
+    var player = Player.init(.{ .x = 3.0, .y = 3.0, .z = 3.0 });
     var world = try World.init(allocator);
     defer world.deinit();
 
-    try world.generateFlat(1, 1);
+    try world.generateFlat(WORLD_SIZE, WORLD_SIZE);
 
     while (!rl.windowShouldClose()) {
         const dt = rl.getFrameTime();
@@ -36,10 +39,10 @@ pub fn main() anyerror!void {
 
         rl.beginMode3D(player.camera);
 
-        world.render();
+        world.render(false);
 
         rl.endMode3D();
 
-        rl.drawFPS(10, 10);
+        rl.drawFPS(FPS_COORDINATES, FPS_COORDINATES);
     }
 }

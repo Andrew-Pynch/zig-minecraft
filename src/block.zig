@@ -273,23 +273,37 @@ pub const Block = struct {
                 },
             }
 
-            // Draw each triangle's vertices and edges
-            var i: usize = 0;
-            while (i < 6) : (i += 3) {
-                const v0 = vertices[i];
-                const v1 = vertices[i + 1];
-                const v2 = vertices[i + 2];
+            const corners = [4]usize{ 0, 1, 2, 5 };
 
-                // Draw vertices as spheres
-                rl.drawSphere(v0, 0.05, rl.Color.red);
-                rl.drawSphere(v1, 0.05, rl.Color.red);
-                rl.drawSphere(v2, 0.05, rl.Color.red);
+            // Draw lines between corners
+            rl.drawLine3D(vertices[corners[0]], vertices[corners[1]], rl.Color.green);
+            rl.drawLine3D(vertices[corners[1]], vertices[corners[2]], rl.Color.green);
+            rl.drawLine3D(vertices[corners[2]], vertices[corners[3]], rl.Color.green);
+            rl.drawLine3D(vertices[corners[3]], vertices[corners[0]], rl.Color.green);
 
-                // Draw triangle edges
-                rl.drawLine3D(v0, v1, rl.Color.green);
-                rl.drawLine3D(v1, v2, rl.Color.green);
-                rl.drawLine3D(v2, v0, rl.Color.green);
-            }
+            // Draw simplified spheres (use wires instead of solid)
+            rl.drawSphereWires(vertices[corners[0]], 0.05, 4, 4, rl.Color.red);
+            rl.drawSphereWires(vertices[corners[1]], 0.05, 4, 4, rl.Color.red);
+            rl.drawSphereWires(vertices[corners[2]], 0.05, 4, 4, rl.Color.red);
+            rl.drawSphereWires(vertices[corners[3]], 0.05, 4, 4, rl.Color.red);
+
+            // // Draw each triangle's vertices and edges
+            // var i: usize = 0;
+            // while (i < 6) : (i += 3) {
+            //     const v0 = vertices[i];
+            //     const v1 = vertices[i + 1];
+            //     const v2 = vertices[i + 2];
+            //
+            //     // Draw vertices as spheres
+            //     rl.drawSphere(v0, 0.05, rl.Color.red);
+            //     rl.drawSphere(v1, 0.05, rl.Color.red);
+            //     rl.drawSphere(v2, 0.05, rl.Color.red);
+            //
+            //     // Draw triangle edges
+            //     rl.drawLine3D(v0, v1, rl.Color.green);
+            //     rl.drawLine3D(v1, v2, rl.Color.green);
+            //     rl.drawLine3D(v2, v0, rl.Color.green);
+            // }
         }
     }
 };

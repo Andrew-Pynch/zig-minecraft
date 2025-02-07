@@ -22,9 +22,9 @@ pub const World = struct {
         try self.blocks.append(block);
     }
 
-    pub fn render(self: World) void {
+    pub fn render(self: World, debug_render: bool) void {
         for (self.blocks.items) |block| {
-            block.render(true);
+            block.render(debug_render);
         }
     }
 
