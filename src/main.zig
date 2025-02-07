@@ -1,3 +1,4 @@
+const std = @import("std");
 const rl = @import("raylib");
 const block = @import("block.zig");
 
@@ -9,7 +10,9 @@ pub fn main() anyerror!void {
     rl.setTargetFPS(60);
     rl.disableCursor();
 
-    const camera = rl.Camera3D{
+    var cameraPitch: f32 = 0.0;
+    var cameraYaw: f32 = -90.0;
+    var camera = rl.Camera3D{
         .position = .{ .x = 10.0, .y = 10.0, .z = 10.0 },
         .target = .{ .x = 0.0, .y = 0.0, .z = 0.0 },
         .up = .{ .x = 0.0, .y = 1.0, .z = 0.0 },
@@ -20,7 +23,7 @@ pub fn main() anyerror!void {
     const testBlock = block.Block.init(.{ .x = 0, .y = 0, .z = 0 }, 2.0);
 
     while (!rl.windowShouldClose()) {
-        // updateCamera(&camera);
+        updateCamera(&camera, &cameraPitch, &cameraYaw);
 
         rl.beginDrawing();
         defer rl.endDrawing();
@@ -36,36 +39,62 @@ pub fn main() anyerror!void {
     }
 }
 
-// fn updateCamera(camera: *rl.Camera3D) void {
-//     const moveSpeed = 0.2;
-//
-//     // Forward/Backward
-//     if (rl.isKeyDown(.w)) {
-//         camera.position.z -= moveSpeed;
-//         camera.target.z -= moveSpeed;
-//     }
-//     if (rl.isKeyDown(.s)) {
-//         camera.position.z += moveSpeed;
-//         camera.target.z += moveSpeed;
-//     }
-//
-//     // Left/Right
-//     if (rl.isKeyDown(.a)) {
-//         camera.position.x -= moveSpeed;
-//         camera.target.x -= moveSpeed;
-//     }
-//     if (rl.isKeyDown(.d)) {
-//         camera.position.x += moveSpeed;
-//         camera.target.x += moveSpeed;
-//     }
-//
-//     // Up/Down
-//     if (rl.isKeyDown(.e)) {
-//         camera.position.y += moveSpeed;
-//         camera.target.y += moveSpeed;
-//     }
-//     if (rl.isKeyDown(.q)) {
-//         camera.position.y -= moveSpeed;
-//         camera.target.y -= moveSpeed;
-//     }
-// }
+fn updateCamera(camera: *rl.Camera3D, pitch: *f32, yaw: *f32) void {
+    const moveSpeed = 0.2;
+    const mouseSensitivity = 0.1;
+
+    // Mouse movement
+    const mouseOffsetX = @as(f32, @floatCast(rl.getMouseDelta().x)) * mouseSensitivity;
+    const mouseOffsetY = @as(f32, @floatCast(rl.getMouseDelta().y)) * mouseSensitivity;
+
+    // Update camera angles
+    yaw.* += mouseOffsetX;
+    pitch.* -= mouseOffsetY;
+
+    // Clamp pitch to avoid flipping
+    if (pitch.* > 89.0) pitch.* = 89.0;
+    if (pitch.* < -89.0) pitch.* = -89.0;
+
+    // Calculate new camera direction
+    const direction = rl.Vector3{
+        .x = @cos(std.math.degreesToRadians(yaw.*)) * @cos(std.math.degreesToRadians(pitch.*)),
+        .y = @sin(std.math.degreesToRadians(pitch.*)),
+        .z = @sin(std.math.degreesToRadians(yaw.*)) * @cos(std.math.degreesToRadians(pitch.*)),
+    };
+
+    // Calculate right vector for strafing
+    const right = rl.Vector3{
+        .x = @cos(std.math.degreesToRadians(yaw.* - 90.0)),
+        .y = 0,
+        .z = @sin(std.math.degreesToRadians(yaw.* - 90.0)),
+    };
+
+    // Handle all movement
+    if (rl.isKeyDown(.w)) {
+        camera.position.x += direction.x * moveSpeed;
+        camera.position.y += direction.y * moveSpeed;
+        camera.position.z += direction.z * moveSpeed;
+    }
+    if (rl.isKeyDown(.s)) {
+        camera.position.x -= direction.x * moveSpeed;
+        camera.position.y -= direction.y * moveSpeed;
+        camera.position.z -= direction.z * moveSpeed;
+    }
+    if (rl.isKeyDown(.d)) {
+        camera.position.x -= right.x * moveSpeed;
+        camera.position.z -= right.z * moveSpeed;
+    }
+    if (rl.isKeyDown(.a)) {
+        camera.position.x += right.x * moveSpeed;
+        camera.position.z += right.z * moveSpeed;
+    }
+    if (rl.isKeyDown(.e)) camera.position.y += moveSpeed;
+    if (rl.isKeyDown(.q)) camera.position.y -= moveSpeed;
+
+    // Update camera target after all position changes
+    camera.target = rl.Vector3{
+        .x = camera.position.x + direction.x,
+        .y = camera.position.y + direction.y,
+        .z = camera.position.z + direction.z,
+    };
+}
