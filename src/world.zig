@@ -1,39 +1,80 @@
 const std = @import("std");
 const rl = @import("raylib");
 const Block = @import("block.zig").Block;
+const Chunk = @import("chunk.zig").Chunk;
+const CHUNK_SIZE = @import("chunk.zig").CHUNK_SIZE;
 
 pub const World = struct {
-    blocks: std.ArrayList(Block),
+    chunks: std.AutoHashMap(ChunkCoord, Chunk),
     allocator: std.mem.Allocator,
+
+    pub const ChunkCoord = struct {
+        x: i32,
+        z: i32,
+
+        pub fn hash(self: ChunkCoord) u64 {
+            return @as(u64, @bitCast(self.x)) << 32 | @as(u64, @bitCast(self.z));
+        }
+
+        pub fn eql(a: ChunkCoord, b: ChunkCoord) bool {
+            return a.x == b.x and a.z == b.z;
+        }
+    };
 
     pub fn init(allocator: std.mem.Allocator) !World {
         return World{
-            .blocks = std.ArrayList(Block).init(allocator),
+            .chunks = std.AutoHashMap(ChunkCoord, Chunk).init(allocator),
             .allocator = allocator,
         };
     }
 
     pub fn deinit(self: *World) void {
-        self.blocks.deinit();
+        var iter = self.chunks.iterator();
+        while (iter.next()) |entry| {
+            entry.value_ptr.deinit();
+        }
+        self.chunks.deinit();
     }
 
-    pub fn addBLock(self: *World, position: rl.Vector3) !void {
-        const block = Block.init(position, 1.0);
-        try self.blocks.append(block);
+    pub fn getChunk(self: *World, coord: ChunkCoord) !*Chunk {
+        const entry = try self.chunks.getOrPut(coord);
+        if (!entry.found_existing) {
+            const position = rl.Vector3{
+                .x = @floatFromInt(coord.x * CHUNK_SIZE),
+                .y = 0,
+                .z = @floatFromInt(coord.z * CHUNK_SIZE),
+            };
+            entry.value_ptr.* = try Chunk.init(self.allocator, position);
+            try self.generateChunk(entry.value_ptr);
+            entry.value_ptr.generateMesh();
+        }
+        return entry.value_ptr;
     }
 
-    pub fn render(self: World, debug_render: bool) void {
-        for (self.blocks.items) |block| {
-            block.render(debug_render);
+    fn generateChunk(_self: *World, chunk: *Chunk) !void {
+        _ = _self; // autofix
+        // Simple flat terrain generation
+        for (0..CHUNK_SIZE) |xu| {
+            const x = @as(i32, @intCast(xu));
+            for (0..CHUNK_SIZE) |zu| {
+                const z = @as(i32, @intCast(zu));
+                const height = 4;
+                chunk.setBlock(
+                    x,
+                    height,
+                    z,
+                    1,
+                );
+            }
         }
     }
 
-    pub fn generateFlat(self: *World, width: i32, depth: i32) !void {
-        var x: i32 = 0;
-        while (x < width) : (x += 1) {
-            var z: i32 = 0;
-            while (z < depth) : (z += 1) {
-                try self.addBLock(.{ .x = @as(f32, @floatFromInt(x)), .y = 0, .z = @as(f32, @floatFromInt(z)) });
+    pub fn render(self: *World) void {
+        var iter = self.chunks.iterator();
+        while (iter.next()) |entry| {
+            const chunk = entry.value_ptr;
+            if (chunk.mesh) |mesh| {
+                rl.drawMesh(mesh, chunk.material.?, rl.Matrix.identity());
             }
         }
     }
