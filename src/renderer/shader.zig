@@ -70,13 +70,14 @@ pub const BasicShader = struct {
         desc.uniform_blocks[0] = .{
             .stage = .VERTEX,
             .size = @sizeOf(BasicUniforms),
-            // .glsl_uniforms = blk: {
-            //     var uniforms: [16]sg.GlslShaderUniform = undefined;
-            //     uniforms[0] = .{ .name = "mvp", .type = .MAT4 };
-            //     // Initialize remaining uniforms to default/empty
-            //     for (1..16) |i| uniforms[i] = .{};
-            //     break :blk uniforms;
-            // },
+            .glsl_uniforms = blk: {
+                var uniforms: [16]sg.GlslShaderUniform = undefined;
+                // Set first uniform slot to MAT4 (matches BasicUniforms.mvp)
+                uniforms[0] = .{ .type = .MAT4, .glsl_name = "basic_shader" };
+                // Initialize remaining slots to default
+                for (1..16) |i| uniforms[i] = .{};
+                break :blk uniforms;
+            },
         };
         return desc;
     }
@@ -125,13 +126,14 @@ pub const ColorShader = struct {
         desc.uniform_blocks[0] = .{
             .stage = .VERTEX,
             .size = @sizeOf(BasicUniforms),
-            // .glsl_uniforms = blk: {
-            //     var uniforms: [16]sg.GlslShaderUniform = undefined;
-            //     uniforms[0] = .{ .name = "mvp", .type = .MAT4 };
-            //     // Initialize remaining uniforms to default/empty
-            //     for (1..16) |i| uniforms[i] = .{};
-            //     break :blk uniforms;
-            // },
+            .glsl_uniforms = blk: {
+                var uniforms: [16]sg.GlslShaderUniform = undefined;
+                // Set first uniform slot to MAT4 (matches BasicUniforms.mvp)
+                uniforms[0] = .{ .type = .MAT4, .glsl_name = "color_shader" };
+                // Initialize remaining slots to default
+                for (1..16) |i| uniforms[i] = .{};
+                break :blk uniforms;
+            },
         };
 
         return desc;
